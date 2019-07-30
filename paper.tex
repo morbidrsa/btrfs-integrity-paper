@@ -259,7 +259,12 @@ BTRFS in this paper, UBIFS is using a HMAC to protect it's internal on-disk
 data structures as well as the file data stored on the File System.
 
 \subsection{ZFS}
-TODO
+ZFS\cite{ZFS} is a File System originally developed at Sun Microsystems (now
+Oracle) for the Solaris Operating System. ZFS uses a Merkle Tree\cite{ZFS} on
+the block level with either the Fletcher2 or SHA-256 Hash algorithm. This
+Merkle Tree is embedded into the File System's internal structure and in a
+way that the File System's Superblock (or Uberblock in ZFS Terms) constantly
+provides an up-to-date signature of the blocks in the File System.
 
 \section{Conclusion}
 Thanks to BTRFS already using checksums for both data and meta-data, turning
@@ -301,5 +306,9 @@ legitimate administrator or user of the File System.
 	S. Hauer.
 	\textit{UBIFS Authentication}
 	\\\texttt{\href{https://www.kernel.org/doc/Documentation/filesystems/ubifs-authentication.md}{https://www.kernel.org/doc/Documentation/filesystems/ubifs-authentication.md}}
+\bibitem{ZFS}
+	Oracle Corporation.
+	\textit{ZFS End-to-End Data Integrity}
+	\\\texttt{\href{https://blogs.oracle.com/bonwick/zfs-end-to-end-data-integrity}{https://blogs.oracle.com/bonwick/zfs-end-to-end-data-integrity}}
 \end{thebibliography}
 \end{document}
