@@ -241,10 +241,15 @@ chain matches, the data is returned. Otherwise an IO error is signaled to the
 upper layers.
 
 \subsection{fs-verity}
-Fs-verity works similar to dm-verity, but instead of a hash tree for the whole
-block device, fs-verity has a Merkle-Tree for every file in the File System
-hidden after the last block of the file, but hidden from the normal
-File System operations and the user.
+Fs-verity\cite{FS-VERITY} works similar to dm-verity, but instead of a hash
+tree for the whole block device, fs-verity has a Merkle-Tree for every file in
+the File System hidden after the last block of the file, but hidden from the
+normal File System operations and the user. The two differences to IMA are,
+fs-verity a) uses a Merkle-Tree instead of a single hash, to speed up open(2)
+calls and b) uses free space at the end of a file instead of an extended
+attribute as this Merkle-Tree can grow larger than the maximum size of an
+extended attribute. Fs-verity does not protect the File System's internal data
+structures from being altered.
 
 \subsection{UBIFS}
 TODO
@@ -276,5 +281,9 @@ TODO
 	\textit{HMAC: Keyed-Hashing for Message Authentication}
 	\\\texttt{\href{https://tools.ietf.org/html/rfc2104}{https://tools.ietf.org/html/rfc2104}}
 	Request for Comments: 2104 	
+\bibitem{FS-VERITY}
+	J. Corbet
+	\textit{Protecting files with fs-verity}
+	\\\texttt{\href{https://lwn.net/Articles/763729/}{https://lwn.net/Articles/763729/}}
 \end{thebibliography}
 \end{document}
