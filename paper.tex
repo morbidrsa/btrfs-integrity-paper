@@ -221,9 +221,6 @@ queries the Linux Kernel's internal keyring for a key which will be used to
 create the HMACs. Also the respective HMAC function needs to be enabled in
 BTRFS and the user-space code needs to be adopted for this as well.
 
-\section{Conclusion}
-TODO
-
 \section{Related Work}
 This paper does not show a novel approach to the trust verification of a 
 File System, but builds upon lessons learned from earlier approaches.
@@ -256,6 +253,14 @@ TODO
 
 \subsection{ZFS}
 TODO
+
+\section{Conclusion}
+Thanks to BTRFS already using checksums for both data and meta-data, turning
+it into an authenticated and verified File System is a technically feasible
+task.  Using BTRFS instead of other File System or Block Layer level
+mechanisms also provides advantages, like authenticated meta-data, as opposed
+to fs-verity, or the ability to be able to alter the File System by a
+legitimate administrator or user of the File System.
 
 \begin{thebibliography}{9}
 \bibitem{BTRFS}
