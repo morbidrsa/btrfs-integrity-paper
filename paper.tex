@@ -246,7 +246,9 @@ fs-verity a) uses a Merkle-Tree instead of a single hash, to speed up open(2)
 calls and b) uses free space at the end of a file instead of an extended
 attribute as this Merkle-Tree can grow larger than the maximum size of an
 extended attribute. Fs-verity does not protect the File System's internal data
-structures from being altered.
+structures from being altered.\\
+As of today (Linux Kernel v5.3-rc), fs-verity is only implemented for the ext4
+and f2fs File Systems and not merged into the mainline kernel.
 
 \subsection{UBIFS}
 UBIFS is the Linux Kernel's File System typically used in the Embedded Device
