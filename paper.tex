@@ -66,7 +66,9 @@ Saving cryptographic hash of a file protects the file from being altered,
 however it does not protect the File Systems internal structures from being
 altered.
 
-%% Add transition to next section
+In order to protect the File System's internal data structures as well as the
+data stored in the File System both the internal structure and the payload
+have to secured. A File System which has the possibility to do this, is BTRFS.
 
 \section{File System Architecture}
 BTRFS\cite{BTRFS} is a general purpose File System for the Linux Operating
