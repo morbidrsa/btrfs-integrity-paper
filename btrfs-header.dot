@@ -1,0 +1,7 @@
+digraph D {
+	graph [ rankdir=LR ];
+	node [fontname="Arial", shape="record" ];
+	btrfs_header [label="
+		struct btrfs_header|{csum|fsid|bytenr|flags|chunk_tree_uuid|generation|owner|nritems|level}
+	"];
+}

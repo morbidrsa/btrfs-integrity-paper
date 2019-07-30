@@ -1,0 +1,14 @@
+digraph D {
+	graph [ rankdir=LR ];
+	node [fontname="Arial", shape=record];
+	btrfs_disk_key [label="
+	struct btrfs_node|
+	{struct btrfs_header|
+		{struct btrfs_item|
+			{struct btrfs_disk_key|{{blockptr|generation}}}}|
+		{struct btrfs_item|
+				{struct btrfs_disk_key|{{blockptr|generation}}}}|
+					...}
+	"];
+}
+

@@ -1,0 +1,278 @@
+\documentclass[10pt]{article}
+%\documentclass[10pt,twocolumn]{article}
+\usepackage[a4paper]{geometry}
+\usepackage[hidelinks]{hyperref}
+\usepackage{titling}
+\usepackage{graphicx}
+
+
+\title{\textbf{Towards File System integrity verification in BTRFS}}
+\author{
+	\textbf{Johannes Thumshirn}\\
+	\normalsize SUSE Labs - Filesystems Team\\
+	\normalsize \href{mailto:jthumshirn@suse.de}{jthumshirn@suse.de}
+}
+\date{}
+
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+	\textbf{
+	Integrity verification of a computer's File System has recently become
+	more important as it is not always possible to ensure a File System
+	has not been altered between two mounts. This is especially important
+	if the administrator has no control over the physical computer anymore
+	like in a cloud environment or with embedded systems and the Internet
+	of things.
+	\\In this paper I present a solution for use with the BTRFS File System.}
+\end{abstract}
+\section{Introduction} 
+With Linux being more and more present in the emerging cloud and embedded
+systems markets extra precaution has to be taken that an administrator or
+service owner can ensure the File System she uses has not been altered by a
+malicious third party.
+
+In contrast to a normal enterprise server or laptop environment, the
+administrator does not always have full control over the File System and thus
+can not take an unaltered File System for guaranteed.  Even for mobile
+computing environments there is the so called "Evil maid attack" \cite{maid},
+which is the attack of an unattended device by a physical attacker, with the
+goal to alter the device in a way later gain access to the data stored on this
+device or the device itself.
+
+This can either be done by altering the internal structure of the File System,
+for instance by exchanging the
+inode\footnote{\href{https://en.wikipedia.org/wiki/Inode}
+{https://en.wikipedia.org/wiki/Inode}} number of the \textbf{/bin/login} login
+service to \textbf{/bin/true}, a program which has the sole purpose of
+returning the boolean value of \textbf{true}. Another possible version of the
+"Evil Maid Attack" targeting disk encryption is to replace the program
+decrypting the disk with a version controlled by the attacker, that a)
+decrypts the hard disk with the user-supplied key but b) records the key as
+well so the attacker can then later extract it and access the data.
+
+For applications of Linux like in embedded systems, with hosting co-location
+or virtual machines running in a public cloud environment, there is next to no
+possibility for an administrator to control whether a File System has been
+altered or not. To check if a single file has been replaced with a malicious
+version the \textit{Linux Kernel's Integrity Measurement
+Architecture}\cite{IMA} can be utilized. IMA records a cryptographic hash of a
+file and saves it as out-of-band information in an extended attribute
+\footnote{\href{https://en.wikipedia.org/wiki/Extended\_file\_attributes}
+{https://en.wikipedia.org/wiki/Extended\_file\_attributes}} of the file.
+Saving cryptographic hash of a file protects the file from being altered,
+however it does not protect the File Systems internal structures from being
+altered.
+
+%% Add transition to next section
+
+\section{File System Architecture}
+BTRFS\cite{BTRFS} is a general purpose File System for the Linux Operating
+system that was first introduced in 2009. BTRFS is based on a copy-on-write
+\footnote{\href{https://en.wikipedia.org/wiki/Copy-on-write\#In\_computer\_storage}
+{https://en.wikipedia.org/wiki/Copy-on-write\#In\_computer\_storage}} capable
+B-tree\cite{rodeh} data-structure. The main features of BTRFS are
+copy-on-write, File System level snapshots, subvolumes, data and meta-data
+checksums, transparent compression and multi-device storage pools. BTRFS is
+mainly developed by Facebook, Fujitsu, SUSE and
+Oracle\footnote{\href{https://btrfs.wiki.kernel.org/index.php/Contributors}
+{https://btrfs.wiki.kernel.org/index.php/Contributors}} but has had
+contributions from other companies as well in the past.
+
+In BTRFS updates to a block on disk don't happen to the to-be updated block
+directly but the block first is updated in the host's memory and then written
+elsewhere on disk. After the block has been written, the File System internal
+data structures used to locate this block get updated in the same fashion as
+the block itself, meaning the data is first read into the host's memory,
+updated and then written to a new location on disk. This way the File System
+is always guaranteed to be consistent in an event of a power loss or eventual
+disk failure. 
+
+Another feature targeting disk failure is the fact that all on-disk structures
+of the File System have a checksum which protects the data. Figures
+~\ref{fig:btrfs-node} and ~\ref{fig:btrfs-leaf} present the
+\texttt{btrfs\_node} and \texttt{btrfs\_leaf} data structures which are the
+basic building block for on-disk meta-data in BTRFS. These data structures
+starts with a \texttt{btrfs\_header} embedded which is shown in Figure
+~\ref{fig:btrfs-header}. The \texttt{btrfs\_header} data structure embedded in
+\texttt{btrfs\_node} and \texttt{btrfs\_leaf} begins with a \texttt{checkusm}
+field protecting not only the \texttt{btrfs\_header} but the whole
+\texttt{btrfs\_node} and \texttt{btrfs\_leaf} data structure, including the
+offset and size fields in \texttt{btrfs\_leaf} which tell the position of the
+data portion of the searched item in the leaf as well as the blockptr in
+\texttt{btrfs\_node}, which holds the address of other blocks in the File
+System.
+
+Accompanying this checksum for meta-data, there is a checksum for every data
+block on the File System and these checksums are written to disk in a special
+area. This area can be accessed by the File System's checksum-tree, which is
+like any other tree in the BTRFS File System a B-tree that has the same
+copy-on-write update semantics the other meta-data nodes in the File System
+have.
+
+The fact that BTRFS already has checksums for both, the data saved in the
+File System as well as the meta-data comprising the File System and it's
+strict copy-on-write nature, meaning there are only a few occasions where data
+on disk is overridden, enables it for being transformed into a File System
+which can be authenticated an verified.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.9\textwidth]{btrfs-node.pdf}
+	\caption{BTRFS Node Structure}
+	\label{fig:btrfs-node}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.9\textwidth]{btrfs-leaf.pdf}
+	\caption{BTRFS Leaf Structure}
+	\label{fig:btrfs-leaf}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.9\textwidth]{btrfs-header.pdf}
+	\caption{BTRFS Header Structure}
+	\label{fig:btrfs-header}
+\end{figure}
+
+\section{Architecture}
+\subsection{Preliminary Work}
+After the initial rework of BTRFS' checksum handling was merged in Linux
+Kernel version 5.3, a second patchset has been sent to add a second checksum
+type XXHASH64\footnote{\href{http://www.xxhash.org}{http://www.xxhash.org}}
+that was frequently requested by the community. XXHASH64 is no
+cryptographically secure hash function but it can be used to ease
+de-duplication of blocks and is generally considered a fast hash function. Table
+~\ref{tab:hash-speed} holds performance data of Hash functions evaluated by
+David Sterba in the course of this.
+This patchset also included the necessary changes to BTRFS' user-space
+utilities in order to create a File System with a different checksum algorithm
+than the default CRC32C.
+
+\begin{table}
+	\centering
+	\begin{tabular}{l | r | r } 
+		Hash & Total Cycles & Cycles per Iteration \\	
+		\hline
+		CRC32C & 1783997556 & 1783 \\
+		CRC32C\_SW & 1738434898 & 1738 \\
+		XXHASH & 2501653700 & 2501 \\
+		BLAKE2b-256-arch & 17754335778 & 17754 \\
+		BLAKE2b-256 & 23867725764 & 23867 \\
+		BLAKE2s-arch & 25877188085 & 25877 \\
+		BLAKE2s & 34630837258 & 34630 \\
+		SHA256 & 106150926755 & 106150 \\
+		SHA3 & 289233228792 & 289233 \\
+		\hline
+	\end{tabular}
+	\caption{Speedtest of different hash functions with 4096 byte blocks
+	and 1,000,000 iterations}
+	\label{tab:hash-speed}
+\end{table}
+
+\subsection{Architectural Considerations}
+\subsubsection{Cryptographic Hash}
+This variant exploits the fact, that each data block's checksum is saved in
+the checksum tree. As this tree is an ordinary btrfs meta-data tree the leaf
+nodes save the data block checksums, the intermediate nodes save the block
+pointers to these checksums and get checksummed as well up to the tree root,
+which then saves the checksum for it's block pointers (which point to the
+intermediate nodes or leaf nodes of the checksum tree). \\ Using this scheme
+we can save the checksum of the checksum tree's root node on every unmount and
+on every mount we can check if these checksums still match. If they do not
+match, we could refuse the mount.\\ The checksum root's checksum could for
+instance be stored inside a TPM
+chip\footnote{\href{https://en.wikipedia.org/wiki/Trusted\_Platform\_Module}
+{https://en.wikipedia.org/wiki/Trusted\_Platform\_Module}} and before mounting
+it could be retrieved from the TPM.\\ The downside to this is, on every
+unmount, the new hash value needs to be stored safely and on every mount the
+on-disk hash has to be checked against the known good hash.
+
+\subsubsection{HMAC}
+This variant takes variant 1 a step further by using an hash-based message
+authentication code \cite{HMAC} instead of a plain hash function. HMACs use an
+user-supplied key and mix it into the calculation of the hash. The key used
+for this could be safely stored in a TPM or any other secure enclave and would
+not need to be modified.\\
+The downside of this is the higher computational efforts needed by employing
+an HMAC as opposed to a plain cryptographically secure hash function.\\
+Another downside is the fact, that the used key has to be deployed at
+File System creation time and cannot easily be modified afterwards.\\
+This approach is favoured by most involved parties.
+
+\subsubsection{Hybrid Hash with HMAC on Root Node}
+This variant is a hybrid approach between the above two proposals. In this
+variant, we calculate a cryptographic hash as checksum for every data and
+meta-data block and let then calculate the HMAC for the root node of the
+checksum tree.\\ This way we save the overhead of the HMAC's double checksum
+calculation but still get the advantage of only having to save the key one for
+a verification of the File System.
+
+\subsection{File System Verification}
+If the ``plain'' HMAC approach will be taken, the next step after the inclusion
+of the XXHASH64 patchset will be implementing a new mount option, which
+queries the Linux Kernel's internal keyring for a key which will be used to
+create the HMACs. Also the respective HMAC function needs to be enabled in
+BTRFS and the user-space code needs to be adopted for this as well.
+
+\section{Conclusion}
+TODO
+
+\section{Related Work}
+This paper does not show a novel approach to the trust verification of a 
+File System, but builds upon lessons learned from earlier approaches.
+
+\subsection{dm-verity}
+Dm-verity is a Linux device-mapper target calculating a rolling hash on the
+block device level. As dm-verity works on a block device level it needs an
+extra partition or block device to save the resulting hash tree, or a reserved
+area on the same block device can be used. Dm-verity is also designed to be
+read-only.\\
+when dm-verity is used as between the File System and the physical block
+device, for every read of a data block on the device a hash is calculated and
+it is verified up to the root node of the hash tree. Only if the whole hash
+chain matches, the data is returned. Otherwise an IO error is signaled to the
+upper layers.
+
+\subsection{fs-verity}
+Fs-verity works similar to dm-verity, but instead of a hash tree for the whole
+block device, fs-verity has a Merkle-Tree for every file in the File System
+hidden after the last block of the file, but hidden from the normal
+File System operations and the user.
+
+\subsection{UBIFS}
+TODO
+
+\subsection{ZFS}
+TODO
+
+\begin{thebibliography}{9}
+\bibitem{BTRFS}
+	Ohad Rodeh, Josef Bacik and Chris Mason.
+	\textit{BTRFS: The Linux B-tree Filesystem}
+	\\\texttt{https://domino.research.ibm.com/library/cyberdig.nsf\\/papers/6E1C5B6A1B6EDD9885257A38006B6130/\$File/rj10501.pdf}
+	\\IBM Research, Fusion-IO.
+\bibitem{rodeh}
+	Ohad Rodeh.
+	\textit{B-trees, shadowing, and clones}
+	\\\texttt{\href{https://www.usenix.org/legacy/events/lsf07/tech/rodeh.pdf}{https://www.usenix.org/legacy/events/lsf07/tech/rodeh.pdf}}
+	USENIX Linux Storage \& Filesystem Workshop 2007. Also Rodeh, Ohad (2008). "B-trees, shadowing, and clones". ACM Transactions on Storage.
+\bibitem{maid}
+	Wikipedia.
+	\textit{Evil Maid Attack}
+	\\\texttt{\href{https://en.wikipedia.org/wiki/Evil\_maid\_attack}{https://en.wikipedia.org/wiki/Evil\_maid\_attack}}
+\bibitem{IMA}
+	Linux IMA Project
+	\textit{IMA - Integrity Measurement Atchitecture}
+	\\\texttt{\href{http://linux-ima.sourceforge.net/}{http://linux-ima.sourceforge.net/}}
+\bibitem{HMAC}
+	H. Krawczyk, M. Bellare, R. Canetti
+	\textit{HMAC: Keyed-Hashing for Message Authentication}
+	\\\texttt{\href{https://tools.ietf.org/html/rfc2104}{https://tools.ietf.org/html/rfc2104}}
+	Request for Comments: 2104 	
+\end{thebibliography}
+\end{document}
