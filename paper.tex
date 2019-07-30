@@ -251,13 +251,12 @@ As of today (Linux Kernel v5.3-rc), fs-verity is only implemented for the ext4
 and f2fs File Systems and not merged into the mainline kernel.
 
 \subsection{UBIFS}
-UBIFS is the Linux Kernel's File System typically used in the Embedded Device
-Market, where raw flash chips are used as opposed to traditional Hard Disk
-Drives or Solid State Disks.\\
-UBIFS also has the capability of authenticating the File System. Similar to
-what is proposed for BTRFS in this paper, UBIFS is using a HMAC to protect
-it's internal on-disk data structures as well as the file data stored on the
-File System.
+UBIFS\cite{UBIFS} is the Linux Kernel's File System typically used in the
+Embedded Device Market, where raw flash chips are used as opposed to
+traditional Hard Disk Drives or Solid State Disks.\\ UBIFS also has the
+capability of authenticating the File System. Similar to what is proposed for
+BTRFS in this paper, UBIFS is using a HMAC to protect it's internal on-disk
+data structures as well as the file data stored on the File System.
 
 \subsection{ZFS}
 TODO
@@ -298,5 +297,9 @@ legitimate administrator or user of the File System.
 	J. Corbet
 	\textit{Protecting files with fs-verity}
 	\\\texttt{\href{https://lwn.net/Articles/763729/}{https://lwn.net/Articles/763729/}}
+\bibitem{UBIFS}
+	S. Hauer.
+	\textit{UBIFS Authentication}
+	\\\texttt{\href{https://www.kernel.org/doc/Documentation/filesystems/ubifs-authentication.md}{https://www.kernel.org/doc/Documentation/filesystems/ubifs-authentication.md}}
 \end{thebibliography}
 \end{document}
