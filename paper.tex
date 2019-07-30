@@ -249,7 +249,13 @@ extended attribute. Fs-verity does not protect the File System's internal data
 structures from being altered.
 
 \subsection{UBIFS}
-TODO
+UBIFS is the Linux Kernel's File System typically used in the Embedded Device
+Market, where raw flash chips are used as opposed to traditional Hard Disk
+Drives or Solid State Disks.\\
+UBIFS also has the capability of authenticating the File System. Similar to
+what is proposed for BTRFS in this paper, UBIFS is using a HMAC to protect
+it's internal on-disk data structures as well as the file data stored on the
+File System.
 
 \subsection{ZFS}
 TODO
