@@ -29,7 +29,7 @@
 	of things.
 	\\In this paper I present a solution for use with the BTRFS File System.}
 \end{abstract}
-\section{Introduction} 
+\section{Introduction}
 With Linux being more and more present in the emerging cloud and embedded
 systems markets extra precaution has to be taken that an administrator or
 service owner can ensure the File System she uses has not been altered by a
@@ -91,7 +91,7 @@ data structures used to locate this block get updated in the same fashion as
 the block itself, meaning the data is first read into the host's memory,
 updated and then written to a new location on disk. This way the File System
 is always guaranteed to be consistent in an event of a power loss or eventual
-disk failure. 
+disk failure.
 
 Another feature targeting disk failure is the fact that all on-disk structures
 of the File System have a checksum which protects the data. Figures
@@ -158,8 +158,8 @@ than the default CRC32C.
 
 \begin{table}
 	\centering
-	\begin{tabular}{l | r | r } 
-		Hash & Total Cycles & Cycles per Iteration \\	
+	\begin{tabular}{l | r | r }
+		Hash & Total Cycles & Cycles per Iteration \\
 		\hline
 		CRC32C & 1783997556 & 1783 \\
 		CRC32C\_SW & 1738434898 & 1738 \\
@@ -250,7 +250,7 @@ Cache is avoided, like in the case of Direct-IO and thus the integrity and
 authenticity of the data is guaranteed as well.
 
 \section{Related Work}
-This paper does not show a novel approach to the trust verification of a 
+This paper does not show a novel approach to the trust verification of a
 File System, but builds upon lessons learned from earlier approaches.
 
 \subsection{dm-verity}
@@ -325,7 +325,7 @@ legitimate administrator or user of the File System.
 	H. Krawczyk, M. Bellare, R. Canetti
 	\textit{HMAC: Keyed-Hashing for Message Authentication}
 	\\\texttt{\href{https://tools.ietf.org/html/rfc2104}{https://tools.ietf.org/html/rfc2104}}
-	Request for Comments: 2104 	
+	Request for Comments: 2104
 \bibitem{FS-VERITY}
 	J. Corbet.
 	\textit{Protecting files with fs-verity}
