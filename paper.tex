@@ -150,32 +150,19 @@ type XXHASH64\footnote{\href{http://www.xxhash.org}{http://www.xxhash.org}}
 that was frequently requested by the community. XXHASH64 is no
 cryptographically secure hash function but it can be used to ease
 de-duplication of blocks and is generally considered a fast hash function. Table
-~\ref{tab:hash-speed} holds performance data of Hash functions evaluated by
+~\ref{fig:hash-speed} holds performance data of Hash functions evaluated by
 David Sterba in the course of this.
 This patchset also included the necessary changes to BTRFS' user-space
 utilities in order to create a File System with a different checksum algorithm
 than the default CRC32C.
 
-\begin{table}
+\begin{figure}
 	\centering
-	\begin{tabular}{l | r | r }
-		Hash & Total Cycles & Cycles per Iteration \\
-		\hline
-		CRC32C & 1783997556 & 1783 \\
-		CRC32C\_SW & 1738434898 & 1738 \\
-		XXHASH & 2501653700 & 2501 \\
-		BLAKE2b-256-arch & 17754335778 & 17754 \\
-		BLAKE2b-256 & 23867725764 & 23867 \\
-		BLAKE2s-arch & 25877188085 & 25877 \\
-		BLAKE2s & 34630837258 & 34630 \\
-		SHA256 & 106150926755 & 106150 \\
-		SHA3 & 289233228792 & 289233 \\
-		\hline
-	\end{tabular}
+	\includegraphics[width=0.9\textwidth]{algo-perf-data.png}
 	\caption{Speedtest of different hash functions with 4096 byte blocks
 	and 1,000,000 iterations}
-	\label{tab:hash-speed}
-\end{table}
+	\label{fig:hash-speed}
+\end{figure}
 
 \subsection{Architectural Considerations}
 \subsubsection{Cryptographic Hash}
