@@ -4,6 +4,7 @@
 \usepackage[hidelinks]{hyperref}
 \usepackage{titling}
 \usepackage{graphicx}
+\usepackage{amsmath}
 
 
 \title{\textbf{Towards File System integrity verification in BTRFS}}
@@ -215,11 +216,38 @@ calculation but still get the advantage of only having to save the key one for
 a verification of the File System.
 
 \subsection{File System Verification}
-If the ``plain'' HMAC approach will be taken, the next step after the inclusion
-of the XXHASH64 patchset will be implementing a new mount option, which
-queries the Linux Kernel's internal keyring for a key which will be used to
-create the HMACs. Also the respective HMAC function needs to be enabled in
-BTRFS and the user-space code needs to be adopted for this as well.
+If the ``plain'' HMAC approach will be taken, the next step after the
+inclusion of the XXHASH64 patchset will be implementing a new mount option,
+which queries the Linux Kernel's internal keyring for a key which will be used
+to create the HMACs upon mount time. Also the respective HMAC function needs
+to be enabled in BTRFS and the user-space code needs to be adopted for this as
+well.\\
+
+For ever data block $b$ and a given key $K$ an HMAC is calculated according to
+the following formula:
+\[
+HMAC(K,b) = H((K' \oplus opad) || H((K' \oplus ipad)|| b ))
+\]
+\[
+K =
+\begin{cases}
+	H(K) & \text{if } K \text{is larger than the hash blocksize} \\
+	K & \text{otherwise}
+\end{cases}
+\]
+With $opad$ and $ipad$ being the defined outer and inner paddings defined by
+the HMAC RFC. These values will be saved in the File System's Checksum tree
+for each data block. The internal on-disk structure's will use the above
+formula for their checksum values stored in \texttt{struct btrfs\_header}.\\
+
+If a data block has been modified, without the modifier having access to the
+HMAC key $K$ a read of this data block will be rejected by the File System's
+end-io hooks for the Page Cache's \texttt{readpage()} method and an error
+message will be printed to the Kernel's log. The same will happen for disk
+blocks representing File System internal meta-data. Despite it's name the
+\texttt{\_\_readpage\_endio\_check()} function also gets called when the Page
+Cache is avoided, like in the case of Direct-IO and thus the integrity and
+authenticity of the data is guaranteed as well.
 
 \section{Related Work}
 This paper does not show a novel approach to the trust verification of a 
